@@ -10,6 +10,7 @@ urls = (
 )
 
 
+
 def getlocation(iplocation):
     url = 'http://ipinfo.io/%s/json' % iplocation
     print 'url: ', url
@@ -22,9 +23,9 @@ def getlocation(iplocation):
     else:
         return None
 
-##############################################################################
 def getpws(lat, lon):
-    f = urllib2.urlopen('http://api.wunderground.com/api/af48603cdc265014/geolookup/q/%s,%s.json' % (lat, lon))
+    f = urllib2.urlopen('http://api.wunderground.com/api/af48603cdc265014/'\
+                        'geolookup/q/%s,%s.json' % (lat, lon))
     json_string = f.read()
     parsed_json = json.loads(json_string)
     pws = parsed_json.get('location').get('nearby_weather_stations')\
@@ -32,7 +33,8 @@ def getpws(lat, lon):
     return pws
 
 def get_temp(pws):
-    f = urllib2.urlopen('http://api.wunderground.com/api/af48603cdc265014/conditions/q/pws:%s.json' % pws)
+    f = urllib2.urlopen('http://api.wunderground.com/api/'\
+                        'af48603cdc265014/conditions/q/pws:%s.json' % pws)
     json_string = f.read()
     parsed_json = json.loads(json_string)
     temp_c = parsed_json.get('current_observation').get('temp_c')
@@ -48,7 +50,7 @@ class Temperature:
             pws = getpws(lat, lon)
             temp_c = get_temp(pws)
             if temp_c:
-                return {"temperature_c": temp_c}
+                return json.dumps({"temperature_c" : temp_c})
         else:
             return "No weather station found in your location."
 
@@ -57,3 +59,4 @@ class Temperature:
 if __name__ == "__main__":
     app = web.application(urls, globals())
     app.run()
+
