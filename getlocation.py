@@ -2,6 +2,7 @@
 import web
 import urllib2
 import json
+import datetime
 
 
 urls = (
@@ -40,19 +41,38 @@ def get_temp(pws):
     temp_c = parsed_json.get('current_observation').get('temp_c')
     return temp_c
 
+ipdict = {}
+ipdict_time = {}
+
+def return_temp(iplocation):
+    location = getlocation(iplocation)
+    if location:
+        lat = location[0]
+        lon = location[1]
+        pws = getpws(lat, lon)
+        temp_c = get_temp(pws)
+        if temp_c:
+            ipdict[iplocation] = temp_c
+            ipdict_time[iplocation] = datetime.datetime.now()
+            print ipdict_time[iplocation]
+            return json.dumps({"temperature_c" : temp_c})
+    else:
+        return "No weather station found in your location."
+
 class Temperature:
     def GET(self):
         iplocation = web.ctx['ip']
-        location = getlocation(iplocation)
-        if location:
-            lat = location[0]
-            lon = location[1]
-            pws = getpws(lat, lon)
-            temp_c = get_temp(pws)
-            if temp_c:
-                return json.dumps({"temperature_c" : temp_c})
+        iplocation = '8.8.8.8'
+        if iplocation not in ipdict.keys():
+            return return_temp(iplocation)
+            
         else:
-            return "No weather station found in your location."
+            if (ipdict_time[iplocation] + datetime.timedelta(hours=3)) - datetime.datetime.now() < datetime.timedelta(hours=3):
+
+                return json.dumps({"temperature_c": ipdict.get(iplocation)})
+            else:
+                return return_temp(iplocation)
+
 
     def POST(self):
         return "Temperature"
